@@ -7,23 +7,26 @@ type OnChangeType = (value: SelectableValue<string>) => void
 
 export function useChangeSelectableValue(props: EditorProps, options: ChangeOptions<Query>): OnChangeType {
     const {onChange, onRunQuery, query} = props;
-    const {propertyName, runQuery} = options;
+    const {propertyName, runQuery, isMulti} = options;
 
     return useCallback(
         (selectable: SelectableValue<string>) => {
-            if (!selectable?.value) {
-                return;
+            if (isMulti) {
+                onChange({
+                    ...query,
+                    [propertyName]: selectable,
+                })
+            } else {
+                onChange({
+                    ...query,
+                    [propertyName]: selectable.value,
+                })
             }
-
-            onChange({
-                ...query,
-                [propertyName]: selectable.value,
-            })
 
             if (runQuery) {
                 onRunQuery();
             }
         },
-        [onChange, onRunQuery, query, propertyName, runQuery]
+        [isMulti, runQuery, query, propertyName, onChange, onRunQuery]
     );
 }

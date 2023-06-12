@@ -10,6 +10,7 @@ import {DataSourceOptions, Query} from './types';
 import _, {uniqBy} from "lodash";
 // eslint-disable-next-line no-restricted-imports
 import moment from 'moment';
+import {SQL} from "./constants";
 
 export class DataSource extends DataSourceApi<Query, DataSourceOptions> {
     baseUrl: string
@@ -31,13 +32,13 @@ export class DataSource extends DataSourceApi<Query, DataSourceOptions> {
         if (options.timezone) {
             this.timezone = options.timezone === "browser" ? Intl.DateTimeFormat().resolvedOptions().timeZone : options.timezone;
         }
-        const targets = options.targets.filter((target) => (!target.queryType || target.queryType === "SQL") && target.sql && !(target.hide === true));
+        const targets = options.targets.filter((target) => (target.queryType) && !(target.hide === true));
         if (targets.length === 0) {
             // @ts-ignore
             return Promise.all([])
         }
         return Promise.all(targets.map(target => {
-            let sql = this.generateSql(target.sql, options);
+            let sql = target.queryType === SQL ? this.generateSql(target.sql, options) : this.generateSimpleSql(target, options);
             this.lastGeneratedSql = sql;
             return this.request(sql).then((res: any) => this.postQuery(target, res, options));
         })).then(data => {
@@ -107,10 +108,6 @@ export class DataSource extends DataSourceApi<Query, DataSourceOptions> {
 
             return uniqBy(values, "text");
         });
-    }
-
-    getGenerateSql(): string {
-        return this.lastGeneratedSql
     }
 
     request(sql: string) {
@@ -254,6 +251,40 @@ export class DataSource extends DataSourceApi<Query, DataSourceOptions> {
         }
 
         return sql;
+    }
+
+    generateSimpleSql(target: Query, options: DataQueryRequest<Query>) {
+        let query = 'select ts,';
+        const from = options.range.from.toISOString();
+        const to = options.range.to.toISOString();
+
+        if (target?.aggregation) {
+            query += ` ${target.aggregation}(variable_value_float), variable_name from hdata.boat where ts >= '${from}' and ts <= '${to}'`;
+        } else {
+            query += ` variable_value_float, variable_name from hdata.boat where ts >= '${from}' and ts <= '${to}'`;
+        }
+
+        if (target?.boat) {
+            query += ` and boat_uuid = "${target.boat}"`;
+        }
+
+        if (target?.variables?.length) {
+            const listVariables = target.variables.map(({value}) => `"${value}"`);
+
+            query += ` and variable_name in (${listVariables.join(', ')})`;
+        }
+
+        if (target?.partitionBy?.length) {
+            const listPartitionBy = target.partitionBy.map(({value}) => value);
+
+            query += ` partition by ${listPartitionBy.join(', ')}`;
+        }
+
+        if (target?.interval) {
+            query += ` interval(${target.interval})`;
+        }
+
+        return query
     }
 
     formatColumn(colFormat: string, labelName: any) {
@@ -542,17 +573,5 @@ export class DataSource extends DataSourceApi<Query, DataSourceOptions> {
             // @ts-ignore
             throw new Error(err);
         }
-    }
-
-    generateTimeshift(options: DataQueryRequest<Query>, target: Query) {
-        let alias = target.alias || "";
-        alias = this.template.replace(alias, options.scopedVars, 'csv');
-        return alias;
-    }
-
-    generateAlias(options: DataQueryRequest<Query>, target: Query) {
-        let alias = target.alias || "";
-        alias = this.template.replace(alias, options.scopedVars, 'csv');
-        return alias;
     }
 }

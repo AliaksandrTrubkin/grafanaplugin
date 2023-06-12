@@ -1,4 +1,4 @@
-import {DataQuery, DataSourceJsonData} from '@grafana/data'
+import {DataQuery, DataSourceJsonData, SelectableValue} from '@grafana/data'
 
 export interface Query extends DataQuery {
     alias?: string
@@ -10,6 +10,11 @@ export interface Query extends DataQuery {
     timeShiftPeriod: number
     timeShiftUnit: string
     expression: string
+    aggregation?: string
+    interval?: string
+    boat?: string
+    partitionBy?: SelectableValue[]
+    variables?: SelectableValue[]
 }
 
 export const DEFAULT_QUERY: Partial<Query> = {
@@ -37,5 +42,7 @@ export interface SecureJsonData {
 export type ChangeOptions<T> = {
     propertyName: keyof T;
     runQuery: boolean
+    isMulti?: boolean
+    customValue?: boolean
     defaultValue?: String
 }

@@ -85,15 +85,11 @@ const defaultIntervalValue = {
 };
 
 const defaultBoatValue = {
-    label: 'Select boat uuid',
+    label: 'Select boat',
     value: ''
 };
 
 const partitionByOptions = [
-    {
-        label: 'Boat uuid',
-        value: 'boat_uuid'
-    },
     {
         label: 'Variable name',
         value: 'variable_name'
@@ -129,39 +125,39 @@ export function SimpleSql({token, isAdmin, ...props}: SimpleSqlProps) {
     if (!props.query.queryType || props.query.queryType !== SIMPLE_SQL) {
         return null
     }
-    console.log(generatedSql)
+
     return <>
         <InlineFieldRow>
-            <InlineField id="partitionBy" label="Partition By" labelWidth={20}>
-                <MultiSelect
-                    inputId="partitionBy"
-                    width={35}
-                    options={partitionByOptions}
-                    placeholder="Select partition by"
-                    onChange={onChangePartitionBy}
-                    value={partitionBy}
-                />
-            </InlineField>
-            <InlineField id="boats" label="Uuid" labelWidth={20}>
+            <InlineField id="boats" label="Boat name" labelWidth={20}>
                 <Select
                     inputId="boats"
-                    width={35}
+                    width={30}
                     options={[defaultBoatValue, ...boatOptions]}
                     defaultValue={defaultBoatValue}
                     onChange={onChangeBoat}
                     value={boat}
                 />
             </InlineField>
-            {Boolean(variableOptions.length) && <InlineField id="variables" label="Variables" labelWidth={20}>
+            <InlineField id="variables" label="Variables" labelWidth={20}>
                 <MultiSelect
                     inputId="variables"
-                    width={35}
+                    width={30}
                     options={variableOptions}
                     placeholder="Select variables"
                     onChange={onChangeVariables}
                     value={variables}
                 />
-            </InlineField>}
+            </InlineField>
+            <InlineField id="partitionBy" label="Partition By" labelWidth={20}>
+                <MultiSelect
+                    inputId="partitionBy"
+                    width={30}
+                    options={partitionByOptions}
+                    placeholder="Select partition by"
+                    onChange={onChangePartitionBy}
+                    value={partitionBy}
+                />
+            </InlineField>
             <div className="gf-form gf-form--grow">
                 <div className="gf-form-label gf-form-label--grow"/>
             </div>
@@ -170,7 +166,7 @@ export function SimpleSql({token, isAdmin, ...props}: SimpleSqlProps) {
             <InlineField id="aggregation" label="Aggregation" labelWidth={20}>
                 <Select
                     inputId="aggregation"
-                    width={35}
+                    width={30}
                     options={[defaultAggregationValue, ...aggregationOptions]}
                     defaultValue={defaultAggregationValue}
                     onChange={onChangeAggregation}
@@ -180,7 +176,7 @@ export function SimpleSql({token, isAdmin, ...props}: SimpleSqlProps) {
             <InlineField id="interval" label="Interval" labelWidth={20}>
                 <Select
                     inputId="interval"
-                    width={35}
+                    width={30}
                     options={[defaultIntervalValue, ...intervalOptions]}
                     defaultValue={defaultIntervalValue}
                     onChange={onChangeInterval}

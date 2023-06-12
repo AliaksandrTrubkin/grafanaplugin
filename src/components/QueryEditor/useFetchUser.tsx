@@ -16,21 +16,23 @@ export function useFetchUser(token: string) {
     const [isAdmin, setIsAdmin] = useState<boolean>(true);
 
     useEffect(() => {
-        (async () => {
-            const response = await fetch(`https://${HOST}/hdata-user/api/v1/user/me`, {
-                headers: {
-                    Accept: "application/json",
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`
-                },
-            })
+        if (token) {
+            (async () => {
+                const response = await fetch(`https://${HOST}/hdata-user/api/v1/user/me`, {
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`
+                    },
+                })
 
-            const result = await response.json() as FetchUserResponse;
+                const result = await response.json() as FetchUserResponse;
 
-            if (result && result.user_role === UserRole.Admin) {
-                setIsAdmin(true)
-            }
-        })();
+                if (result && result.user_role === UserRole.Admin) {
+                    setIsAdmin(true)
+                }
+            })();
+        }
     }, [token]);
 
     return isAdmin;

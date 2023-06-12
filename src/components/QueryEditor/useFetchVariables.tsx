@@ -30,7 +30,7 @@ export function useFetchVariables({uuid, token}: UseFetchVariablesArgs) {
                     },
                 })
 
-                const result = await response.json() as FetchVariablesResponse[];
+                const result = await response.json() as FetchVariablesResponse[]
 
                 if (result) {
                     const options = result.map(({name, label}) => ({
@@ -38,9 +38,11 @@ export function useFetchVariables({uuid, token}: UseFetchVariablesArgs) {
                         value: name,
                     }));
 
-                    setVariablesOptions(options);
+                    setVariablesOptions(options)
                 }
             })();
+        } else {
+            setVariablesOptions([])
         }
     }, [token, uuid]);
 

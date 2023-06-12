@@ -1,43 +1,30 @@
-import React, {ReactElement} from 'react'
-import {InlineField, InlineFieldRow, Select} from '@grafana/ui'
-import {useSelectableValue} from './useSelectableValue'
-import {useChangeSelectableValue} from './useChangeSelectableValue'
+import React from 'react'
 import type {EditorProps} from './types'
-import {SimpleSql} from "./SimpleSql";
-import {SIMPLE_SQL, SQL} from "../../constants";
+import {SIMPLE_SQL} from "../../constants";
 import {Sql} from "./Sql";
+import {BaseForm} from "./BaseForm";
+import {SimpleSql} from "./SimpleSql";
+import {useFetchUser} from "./useFetchUser";
+import {useAuth} from "./useAuth";
 
-const queryTypeOptions = [
-    {label: SIMPLE_SQL, value: SIMPLE_SQL},
-    {label: SQL, value: SQL}
-]
 
-export function QueryEditor(props: EditorProps): ReactElement {
+export function QueryEditor(props: EditorProps) {
     const {query} = props;
     if (!query.queryType) {
         query.queryType = SIMPLE_SQL
     }
+    if (!query.formatType) {
+        query.formatType = "Time series"
+        query.queryType = SIMPLE_SQL
+    }
 
-    const onChangeQueryType = useChangeSelectableValue(props, {propertyName: 'queryType', runQuery: true})
+    const token = useAuth()
+    const isAdmin = useFetchUser(token)
 
     return (
         <div className='gf-form-group'>
-            <InlineFieldRow>
-                <InlineField id="queryType" label='Query Type' labelWidth={20}>
-                    <Select
-                        inputId={"queryType"}
-                        width={20}
-                        options={queryTypeOptions}
-                        defaultValue={queryTypeOptions[0]}
-                        onChange={onChangeQueryType}
-                        value={useSelectableValue(query.queryType)}
-                    />
-                </InlineField>
-                <div className="gf-form gf-form--grow">
-                    <div className="gf-form-label gf-form-label--grow"></div>
-                </div>
-            </InlineFieldRow>
-            <SimpleSql {...props} />
+            <BaseForm {...props} isAdmin={isAdmin}/>
+            <SimpleSql {...props} token={token} isAdmin={isAdmin}/>
             <Sql {...props}/>
         </div>
     );

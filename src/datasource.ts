@@ -10,14 +10,15 @@ import {DataSourceOptions, Query} from './types';
 import _, {uniqBy} from "lodash";
 // eslint-disable-next-line no-restricted-imports
 import moment from 'moment';
-import {SQL} from "./constants";
+import {SPECIAL_AGGREGATIONS, SQL} from "./constants";
 
 export class DataSource extends DataSourceApi<Query, DataSourceOptions> {
     baseUrl: string
     backendSrv: BackendSrv
     template: TemplateSrv
     timezone = ''
-    lastGeneratedSql = ''
+    lastSimpleSql = ''
+    lastSql = ''
     serverVersion = 0
 
     constructor(instanceSettings: DataSourceInstanceSettings<DataSourceOptions>) {
@@ -39,8 +40,14 @@ export class DataSource extends DataSourceApi<Query, DataSourceOptions> {
         }
         return Promise.all(targets.map(target => {
             let sql = target.queryType === SQL ? this.generateSql(target.sql, options) : this.generateSimpleSql(target, options);
-            this.lastGeneratedSql = sql;
-            return this.request(sql).then((res: any) => this.postQuery(target, res, options));
+            this.lastSimpleSql = target.queryType !== SQL ? sql : this.lastSimpleSql;
+            this.lastSql = target.queryType === SQL ? sql : this.lastSql;
+
+            if (this.isValidSql(sql)) {
+                return this.request(sql).then((res: any) => this.postQuery(target, res, options));
+            }
+
+            return Promise.reject('Wrong sql query')
         })).then(data => {
             let result = this.arithmeticQueries(data, options).flat();
             return {data: result};
@@ -254,14 +261,20 @@ export class DataSource extends DataSourceApi<Query, DataSourceOptions> {
     }
 
     generateSimpleSql(target: Query, options: DataQueryRequest<Query>) {
-        let query = 'select ts,';
+        let query = 'select';
         const from = options.range.from.toISOString();
         const to = options.range.to.toISOString();
 
         if (target?.aggregation) {
-            query += ` ${target.aggregation}(variable_value_float), variable_name from hdata.boat where ts >= '${from}' and ts <= '${to}'`;
+            if (SPECIAL_AGGREGATIONS.includes(target.aggregation)) {
+                const variableName = target?.partitionBy?.some(({value}) => value === 'variable_name') ? 'variable_name' : '';
+
+                query += ` first(ts) as start_ts, last(ts) as last_ts, ${target.aggregation}(variable_value_float), ${variableName} from hdata.boat where ts >= '${from}' and ts <= '${to}'`;
+            } else {
+                query += ` ts, ${target.aggregation}(variable_value_float), variable_name from hdata.boat where ts >= '${from}' and ts <= '${to}'`;
+            }
         } else {
-            query += ` variable_value_float, variable_name from hdata.boat where ts >= '${from}' and ts <= '${to}'`;
+            query += ` ts, variable_value_float, variable_name from hdata.boat where ts >= '${from}' and ts <= '${to}'`;
         }
 
         if (target?.boat) {
@@ -573,5 +586,13 @@ export class DataSource extends DataSourceApi<Query, DataSourceOptions> {
             // @ts-ignore
             throw new Error(err);
         }
+    }
+
+    isValidSql(sql: string) {
+        const angryCommands = ['create', 'use', 'drop', 'alter', 'show', 'trim', 'flush', 'describe', 'insert', 'delete']
+
+        const regex = new RegExp('\\b(' + angryCommands.join('|') + ')\\b', 'gi');
+
+        return !sql.match(regex)
     }
 }

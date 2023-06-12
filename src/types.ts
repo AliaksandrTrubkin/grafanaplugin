@@ -43,6 +43,5 @@ export type ChangeOptions<T> = {
     propertyName: keyof T;
     runQuery: boolean
     isMulti?: boolean
-    customValue?: boolean
     defaultValue?: String
 }

@@ -1,13 +1,12 @@
 import React from 'react';
-import {InlineField, InlineFieldRow, MultiSelect, Select} from "@grafana/ui";
+import {InlineField, InlineFieldRow, Input, MultiSelect, Select} from "@grafana/ui";
 import {useChangeSelectableValue} from "./useChangeSelectableValue";
-import type {EditorProps} from './types'
 import {useSelectableValue} from "./useSelectableValue";
-import {useAuth} from "./useAuth";
 import {useFetchBoats} from "./useFetchBoats";
 import {SIMPLE_SQL} from "../../constants";
 import {useFetchVariables} from "./useFetchVariables";
 import {useMultiSelectableValue} from "./useMultiSelectableValue";
+import {SimpleSqlProps} from "./types";
 
 const aggregationOptions = [
     {
@@ -101,7 +100,7 @@ const partitionByOptions = [
     },
 ];
 
-export function SimpleSql(props: EditorProps) {
+export function SimpleSql({token, isAdmin, ...props}: SimpleSqlProps) {
     const onChangeAggregation = useChangeSelectableValue(props, {propertyName: 'aggregation', runQuery: true})
     const onChangeInterval = useChangeSelectableValue(props, {propertyName: 'interval', runQuery: true})
     const onChangeBoat = useChangeSelectableValue(props, {propertyName: 'boat', runQuery: true})
@@ -122,15 +121,16 @@ export function SimpleSql(props: EditorProps) {
     const variables = useMultiSelectableValue(props.query.variables)
     const partitionBy = useMultiSelectableValue(props.query.partitionBy)
 
-    const token = useAuth()
     const boatOptions = useFetchBoats(token)
     const variableOptions = useFetchVariables({token, uuid: boat?.value})
+
+    const generatedSql = props.datasource.lastSimpleSql;
 
     if (!props.query.queryType || props.query.queryType !== SIMPLE_SQL) {
         return null
     }
-
-    return <InlineFieldRow>
+    console.log(generatedSql)
+    return <>
         <InlineFieldRow>
             <InlineField id="partitionBy" label="Partition By" labelWidth={20}>
                 <MultiSelect
@@ -162,6 +162,9 @@ export function SimpleSql(props: EditorProps) {
                     value={variables}
                 />
             </InlineField>}
+            <div className="gf-form gf-form--grow">
+                <div className="gf-form-label gf-form-label--grow"/>
+            </div>
         </InlineFieldRow>
         <InlineFieldRow>
             <InlineField id="aggregation" label="Aggregation" labelWidth={20}>
@@ -184,6 +187,18 @@ export function SimpleSql(props: EditorProps) {
                     value={interval}
                 />
             </InlineField>
+            <div className="gf-form gf-form--grow">
+                <div className="gf-form-label gf-form-label--grow"/>
+            </div>
         </InlineFieldRow>
-    </InlineFieldRow>
+        {isAdmin && <InlineField label="Sql output" labelWidth={20} grow>
+            <Input
+                style={{"width": "100%"}}
+                className="min-width-30 max-width-100 gf-form--grow"
+                width={100}
+                disabled
+                value={generatedSql}
+            />
+        </InlineField>}
+    </>
 }

@@ -267,7 +267,7 @@ export class DataSource extends DataSourceApi<Query, DataSourceOptions> {
 
         if (target?.aggregation) {
             if (SPECIAL_AGGREGATIONS.includes(target.aggregation)) {
-                const variableName = target?.partitionBy?.some(({value}) => value === ', variable_name') ? 'variable_name' : '';
+                const variableName = target?.partitionBy?.some(({value}) => value === 'variable_name') ? ', variable_name' : '';
 
                 query += ` first(ts) as start_ts, last(ts) as end_ts, ${target.aggregation}(variable_value_float) ${variableName} from hdata.boat where ts >= '${from}' and ts <= '${to}'`;
             } else {

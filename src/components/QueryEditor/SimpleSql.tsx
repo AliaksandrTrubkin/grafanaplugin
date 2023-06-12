@@ -121,7 +121,7 @@ export function SimpleSql({token, isAdmin, ...props}: SimpleSqlProps) {
     const variableOptions = useFetchVariables({token, uuid: boat?.value})
 
     const generatedSql = props.datasource.lastSimpleSql;
-
+    console.log(generatedSql)
     if (!props.query.queryType || props.query.queryType !== SIMPLE_SQL) {
         return null
     }
@@ -131,7 +131,7 @@ export function SimpleSql({token, isAdmin, ...props}: SimpleSqlProps) {
             <InlineField id="boats" label="Boat name" labelWidth={20}>
                 <Select
                     inputId="boats"
-                    width={30}
+                    width={25}
                     options={[defaultBoatValue, ...boatOptions]}
                     defaultValue={defaultBoatValue}
                     onChange={onChangeBoat}
@@ -141,7 +141,7 @@ export function SimpleSql({token, isAdmin, ...props}: SimpleSqlProps) {
             <InlineField id="variables" label="Variables" labelWidth={20}>
                 <MultiSelect
                     inputId="variables"
-                    width={30}
+                    width={25}
                     options={variableOptions}
                     placeholder="Select variables"
                     onChange={onChangeVariables}
@@ -151,7 +151,7 @@ export function SimpleSql({token, isAdmin, ...props}: SimpleSqlProps) {
             <InlineField id="partitionBy" label="Partition By" labelWidth={20}>
                 <MultiSelect
                     inputId="partitionBy"
-                    width={30}
+                    width={25}
                     options={partitionByOptions}
                     placeholder="Select partition by"
                     onChange={onChangePartitionBy}
@@ -166,7 +166,7 @@ export function SimpleSql({token, isAdmin, ...props}: SimpleSqlProps) {
             <InlineField id="aggregation" label="Aggregation" labelWidth={20}>
                 <Select
                     inputId="aggregation"
-                    width={30}
+                    width={25}
                     options={[defaultAggregationValue, ...aggregationOptions]}
                     defaultValue={defaultAggregationValue}
                     onChange={onChangeAggregation}
@@ -176,7 +176,7 @@ export function SimpleSql({token, isAdmin, ...props}: SimpleSqlProps) {
             <InlineField id="interval" label="Interval" labelWidth={20}>
                 <Select
                     inputId="interval"
-                    width={30}
+                    width={25}
                     options={[defaultIntervalValue, ...intervalOptions]}
                     defaultValue={defaultIntervalValue}
                     onChange={onChangeInterval}

@@ -39,7 +39,7 @@ export class DataSource extends DataSourceApi<Query, DataSourceOptions> {
             return Promise.all([])
         }
         return Promise.all(targets.map(target => {
-            let sql = target.queryType === SQL ? this.generateSql(target.sql, options) : this.generateSimpleSql(target);
+            let sql = target.queryType === SQL ? this.generateSql(target.sql, options) : this.generateSimpleSql(target, options);
             this.lastSimpleSql = target.queryType !== SQL ? sql : this.lastSimpleSql;
             this.lastSql = target.queryType === SQL ? sql : this.lastSql;
 
@@ -260,19 +260,21 @@ export class DataSource extends DataSourceApi<Query, DataSourceOptions> {
         return sql;
     }
 
-    generateSimpleSql(target: Query) {
+    generateSimpleSql(target: Query, options: DataQueryRequest<Query>) {
         let query = 'select';
+        const from = options.range.from.toISOString();
+        const to = options.range.to.toISOString();
 
         if (target?.aggregation) {
             if (SPECIAL_AGGREGATIONS.includes(target.aggregation)) {
-                const variableName = target?.partitionBy?.some(({value}) => value === 'variable_name') ? 'variable_name' : '';
+                const variableName = target?.partitionBy?.some(({value}) => value === ', variable_name') ? 'variable_name' : '';
 
-                query += ` first(ts) as start_ts, last(ts) as last_ts, ${target.aggregation}(variable_value_float) ${variableName} from hdata.boat where ts >= $from and ts <= $to`;
+                query += ` first(ts) as start_ts, last(ts) as end_ts, ${target.aggregation}(variable_value_float) ${variableName} from hdata.boat where ts >= '${from}' and ts <= '${to}'`;
             } else {
-                query += ` ts, ${target.aggregation}(variable_value_float) variable_name from hdata.boat where ts >= $from and ts <= $to`;
+                query += ` ts, ${target.aggregation}(variable_value_float), variable_name from hdata.boat where ts >= '${from}' and ts <= '${to}'`;
             }
         } else {
-            query += ` ts, variable_value_float, variable_name from hdata.boat where ts >= $from and ts <= $to`;
+            query += ` ts, variable_value_float, variable_name from hdata.boat where ts >= '${from}' and ts <= '${to}'`;
         }
 
         if (target?.boat) {

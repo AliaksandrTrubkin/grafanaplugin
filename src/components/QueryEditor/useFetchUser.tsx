@@ -13,7 +13,7 @@ interface FetchUserResponse {
 }
 
 export function useFetchUser(token: string) {
-    const [isAdmin, setIsAdmin] = useState<boolean>(true);
+    const [isAdmin, setIsAdmin] = useState(false);
 
     useEffect(() => {
         if (token) {

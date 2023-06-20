@@ -13,6 +13,8 @@ export interface Query extends DataQuery {
     aggregation?: string
     interval?: string
     boat?: string
+    filter?: string
+    filterValue?: string
     partitionBy?: SelectableValue[]
     variables?: SelectableValue[]
 }

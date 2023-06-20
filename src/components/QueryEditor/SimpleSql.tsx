@@ -7,6 +7,7 @@ import {SIMPLE_SQL} from "../../constants";
 import {useFetchVariables} from "./useFetchVariables";
 import {useMultiSelectableValue} from "./useMultiSelectableValue";
 import {SimpleSqlProps} from "./types";
+import {useChangeOptions} from "./useChangeOptions";
 
 const aggregationOptions = [
     {
@@ -79,6 +80,29 @@ const intervalOptions = [
     },
 ];
 
+const filteringOptions = [
+    {
+        label: '>',
+        value: '>'
+    },
+    {
+        label: '>=',
+        value: '>='
+    },
+    {
+        label: '<',
+        value: '<'
+    },
+    {
+        label: '<=',
+        value: '<='
+    },
+    {
+        label: '=',
+        value: '='
+    }
+];
+
 const defaultIntervalValue = {
     label: 'Select interval',
     value: ''
@@ -96,10 +120,18 @@ const partitionByOptions = [
     },
 ];
 
+const defaultFilteringOptions = {
+    label: 'Select filter',
+    value: ''
+}
+
 export function SimpleSql({token, isAdmin, ...props}: SimpleSqlProps) {
     const onChangeAggregation = useChangeSelectableValue(props, {propertyName: 'aggregation', runQuery: true})
     const onChangeInterval = useChangeSelectableValue(props, {propertyName: 'interval', runQuery: true})
     const onChangeBoat = useChangeSelectableValue(props, {propertyName: 'boat', runQuery: true})
+    const onChangeFilter = useChangeSelectableValue(props, {propertyName: 'filter', runQuery: true})
+    const onChangeFilterValue = useChangeOptions(props, {propertyName: 'filterValue', runQuery: false})
+    const onBlurFilterValue = useChangeOptions(props, {propertyName: 'filterValue', runQuery: true})
     const onChangeVariables = useChangeSelectableValue(props, {
         propertyName: 'variables',
         runQuery: true,
@@ -114,6 +146,7 @@ export function SimpleSql({token, isAdmin, ...props}: SimpleSqlProps) {
     const aggregation = useSelectableValue(props.query.aggregation)
     const interval = useSelectableValue(props.query.interval)
     const boat = useSelectableValue(props.query.boat)
+    const filter = useSelectableValue(props.query.filter)
     const variables = useMultiSelectableValue(props.query.variables)
     const partitionBy = useMultiSelectableValue(props.query.partitionBy)
 
@@ -121,7 +154,7 @@ export function SimpleSql({token, isAdmin, ...props}: SimpleSqlProps) {
     const variableOptions = useFetchVariables({token, uuid: boat?.value})
 
     const generatedSql = props.datasource.lastSimpleSql;
-    console.log(generatedSql)
+
     if (!props.query.queryType || props.query.queryType !== SIMPLE_SQL) {
         return null
     }
@@ -183,9 +216,25 @@ export function SimpleSql({token, isAdmin, ...props}: SimpleSqlProps) {
                     value={interval}
                 />
             </InlineField>
-            <div className="gf-form gf-form--grow">
-                <div className="gf-form-label gf-form-label--grow"/>
-            </div>
+            <InlineField id="filtering" label="Filter" labelWidth={20}>
+                <>
+                    <Select
+                        inputId="filtering"
+                        width={25}
+                        options={[defaultFilteringOptions, ...filteringOptions]}
+                        defaultValue={defaultFilteringOptions}
+                        onChange={onChangeFilter}
+                        value={filter}
+                    />
+                    <Input
+                        width={25}
+                        placeholder="Filter value"
+                        onChange={onChangeFilterValue}
+                        onBlur={onBlurFilterValue}
+                        value={props.query.filterValue}
+                    />
+                </>
+            </InlineField>
         </InlineFieldRow>
         {isAdmin && <InlineField label="Sql output" labelWidth={20} grow>
             <Input

@@ -287,6 +287,10 @@ export class DataSource extends DataSourceApi<Query, DataSourceOptions> {
             query += ` and variable_name in (${listVariables.join(', ')})`;
         }
 
+        if(target?.filter && target?.filterValue){
+            query += ` and variable_value_float ${target.filter} ${target.filterValue}`
+        }
+
         if (target?.partitionBy?.length) {
             const listPartitionBy = target.partitionBy.map(({value}) => value);
 
